@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Echo HQ — an AI council with a paper trail</title>
+<meta name="description" content="Echo HQ is a private AI council: a bench of personas that debates your startup ideas live in a dashboard, convenes verdicts, buries what dies — and keeps the whole record in plain markdown and JSON.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+<style>
+:root {
+  --bg: #0f0f12; --panel: #17171d; --raised: #201f28; --border: #2b2a35;
+  --text: #ecebf1; --muted: #a3a1b0; --violet: #a78bfa; --violet-bright: #c4b0fd;
+  --green: #7fb069; --red: #d96459;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.dim { color: var(--muted); }
+
+nav { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px); background: rgba(15,15,18,.85); border-bottom: 1px solid var(--border); }
+nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+.brand { display: flex; gap: 10px; align-items: center; font-weight: 700; font-size: 17px; }
+.brand .logo { width: 28px; height: 28px; background: var(--raised); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+nav .links { display: flex; gap: 26px; font-size: 14.5px; color: var(--muted); }
+nav .links a:hover { color: var(--text); }
+@media (max-width: 760px) { nav .links { display: none; } }
+
+.hero { padding: 88px 0 64px; display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; padding-top: 56px; } }
+h1 { font-size: 44px; line-height: 1.12; letter-spacing: -.02em; margin: 18px 0 14px; }
+.tagline { font-size: 18px; color: var(--muted); margin-bottom: 14px; }
+.kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--violet); background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.35); padding: 6px 12px; border-radius: 999px; }
+.sub { font-size: 16px; color: var(--muted); margin-bottom: 28px; max-width: 52ch; }
+.cta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.btn { display: inline-block; padding: 12px 22px; border-radius: 12px; font-weight: 600; font-size: 15px; transition: transform .15s, background .15s; }
+.btn:hover { transform: translateY(-1px); }
+.btn.primary { background: var(--violet); color: #0f0f12; }
+.btn.primary:hover { background: var(--violet-bright); }
+.btn.ghost { border: 1px solid var(--border); color: var(--text); }
+.btn.ghost:hover { border-color: #453f58; }
+.ver { font-size: 13px; color: var(--muted); }
+.ver b { color: var(--violet); }
+
+/* app mock */
+.appmock { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+.appmock .tbar { display: flex; gap: 6px; align-items: center; padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+.appmock .tbar i { width: 10px; height: 10px; border-radius: 50%; background: #36333f; }
+.appmock .tbar .up { margin-left: auto; color: var(--violet); font-size: 11px; border: 1px solid rgba(167,139,250,.4); padding: 2px 8px; border-radius: 999px; }
+.appmock .body { display: flex; min-height: 330px; }
+.appmock .side { width: 130px; border-right: 1px solid var(--border); padding: 12px 8px; font-size: 11px; }
+.appmock .side .sec { color: var(--muted); text-transform: uppercase; font-size: 9.5px; letter-spacing: .8px; padding: 8px 8px 4px; }
+.appmock .side .b { padding: 6px 8px; border-radius: 7px; display: flex; gap: 7px; align-items: center; white-space: nowrap; overflow: hidden; }
+.appmock .side .b.on { background: var(--raised); }
+.appmock .side .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.appmock .main { flex: 1; padding: 16px; }
+.appmock .title { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.appmock .ico { width: 30px; height: 30px; background: var(--raised); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+.chip { font-size: 10.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+.chip.on { color: var(--violet); border-color: rgba(167,139,250,.4); }
+.chip.no { color: var(--red); border-color: rgba(217,100,89,.4); }
+.row-line { display: flex; justify-content: space-between; font-size: 11.5px; padding: 8px 2px; border-top: 1px solid var(--border); color: var(--muted); }
+.row-line b { color: var(--text); font-weight: 500; }
+.appmock .bubble { display: flex; gap: 9px; align-items: flex-start; margin-bottom: 9px; }
+.appmock .av { width: 22px; height: 22px; border-radius: 7px; background: var(--raised); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; color: var(--violet); flex-shrink: 0; }
+.appmock .say { background: var(--raised); border: 1px solid var(--border); border-radius: 10px; padding: 7px 10px; font-size: 11px; color: var(--muted); }
+.appmock .say b { color: var(--text); font-weight: 600; }
+.appmock .verdict { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding: 8px 12px; border: 1px solid rgba(167,139,250,.4); background: rgba(167,139,250,.1); border-radius: 9px; font-size: 11px; color: var(--violet); font-weight: 600; }
+
+section { padding: 72px 0; border-top: 1px solid var(--border); }
+h2 { font-size: 30px; letter-spacing: -.01em; margin-bottom: 10px; }
+.lead { color: var(--muted); font-size: 16.5px; max-width: 62ch; margin-bottom: 36px; }
+
+/* progress map */
+.pmap { display: grid; gap: 14px; }
+.prow { display: grid; grid-template-columns: 220px 1fr 64px; gap: 16px; align-items: center; font-size: 14.5px; }
+@media (max-width: 720px) { .prow { grid-template-columns: 1fr; gap: 6px; } }
+.prow .area { display: flex; justify-content: space-between; gap: 10px; }
+.prow .area .miss { color: var(--muted); font-size: 12.5px; display: none; }
+.bar { height: 10px; background: var(--raised); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--violet), var(--violet-bright)); border-radius: 6px; }
+.bar.full i { background: var(--green); }
+.pct { font-family: ui-monospace, Menlo, monospace; font-size: 13px; color: var(--violet); text-align: right; }
+.prow.total { padding-top: 8px; border-top: 1px solid var(--border); font-weight: 700; }
+.prow.total .pct { color: var(--violet-bright); }
+.src { font-size: 12.5px; color: var(--muted); margin-top: 18px; }
+
+/* features */
+.grid { display: grid; gap: 16px; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) { .g3 { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 26px; transition: border-color .15s; }
+.card:hover { border-color: #453f58; }
+.card .ico { font-size: 26px; margin-bottom: 14px; }
+.card h3 { font-size: 17.5px; margin-bottom: 8px; }
+.card p { font-size: 14.5px; color: var(--muted); }
+.uniq { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 8px 26px; margin-top: 32px; }
+.uniq li { list-style: none; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 15px; display: flex; gap: 12px; }
+.uniq li:last-child { border-bottom: none; }
+.uniq .n { color: var(--violet); font-family: ui-monospace, Menlo, monospace; font-size: 13px; padding-top: 2px; }
+
+/* whats new */
+.news { display: grid; gap: 10px; }
+.news .item { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; display: grid; grid-template-columns: 110px 1fr; gap: 16px; font-size: 14.5px; }
+@media (max-width: 640px) { .news .item { grid-template-columns: 1fr; gap: 4px; } }
+.news .v { color: var(--violet); font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+
+/* download */
+#download .inst { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; margin: 26px 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+#download code { font-family: ui-monospace, Menlo, monospace; font-size: 13px; color: var(--violet); }
+.copy { background: var(--raised); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+.copy:hover { border-color: #453f58; }
+.copy.done { border-color: var(--violet); color: var(--violet); }
+.note { font-size: 13.5px; color: var(--muted); margin-top: 14px; }
+
+footer { border-top: 1px solid var(--border); padding: 34px 0 44px; color: var(--muted); font-size: 13.5px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#"><span class="logo">🏛️</span> Echo HQ</a>
+    <div class="links">
+      <a href="#how">How it works</a>
+      <a href="#members">The council</a>
+      <a href="#record">The record</a>
+      <a href="#download">Download</a>
+      <a href="https://github.com/KSWORK2001/council-releases" target="_blank" rel="noopener">Releases</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <div>
+    <span class="kicker">AI council · private beta</span>
+    <h1>Every idea, put<br>in front of a council.</h1>
+    <p class="tagline">Personas that debate your startup ideas, with a permanent record.</p>
+    <p class="sub">Seven seats — Creative, Critic, Engineer, Product, Marketer, Finance, Legal — take positions and argue them live in a dashboard. You ask, they fight it out, you convene the verdict, and everything lands in plain markdown: every debate, every pitch, every burial.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="https://github.com/KSWORK2001/council-releases/releases/latest" target="_blank" rel="noopener">Latest release</a>
+      <a class="btn ghost" href="#how">How it works</a>
+      <span class="ver">latest: <b id="ver">…</b></span>
+    </div>
+  </div>
+
+  <div class="appmock" aria-hidden="true">
+    <div class="tbar"><i></i><i></i><i></i>&nbsp;&nbsp;Echo HQ<span class="up">session live</span></div>
+    <div class="body">
+      <div class="side">
+        <div class="sec">Council</div>
+        <div class="b on"><span class="dot"></span>Creative</div>
+        <div class="b"><span class="dot"></span>Critic</div>
+        <div class="b"><span class="dot"></span>Engineer</div>
+        <div class="b"><span class="dot"></span>Product</div>
+        <div class="b"><span class="dot"></span>Marketer</div>
+        <div class="b"><span class="dot"></span>Finance</div>
+        <div class="b"><span class="dot"></span>Legal</div>
+        <div class="sec">Rooms</div>
+        <div class="b">💬 Debates</div>
+        <div class="b">🎤 Pitches</div>
+        <div class="b">🪦 Graveyard</div>
+      </div>
+      <div class="main">
+        <div class="title"><span class="ico">🏛️</span> Council debate · on the table</div>
+        <div class="chips">
+          <span class="chip on">CR · Build it</span><span class="chip no">CT · Kill it</span>
+          <span class="chip">EN · Reshape it</span><span class="chip on">PR · Build it</span>
+          <span class="chip on">MK · Build it</span><span class="chip no">LG · Kill it</span>
+        </div>
+        <div class="bubble"><span class="av">CT</span><span class="say"><b>Critic:</b> No transport is verified. One wrong cell and the preparer never trusts it again.</span></div>
+        <div class="bubble"><span class="av">EN</span><span class="say"><b>Engineer:</b> Then gate it on a one-day spike. Typed input is the fallback, not the funeral.</span></div>
+        <div class="verdict"><span>⚖️ Verdict · Build it</span><span>5 of 7</span></div>
+        <div class="chips" style="margin-top:12px">
+          <span class="chip on">Ask</span><span class="chip">Convene</span><span class="chip no">Bury</span>
+        </div>
+        <div class="row-line" style="margin-top:4px"><span>Recorded in</span><b>debates.md · pitches.md</b></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="how">
+  <div class="wrap">
+    <h2>Ask. Argue. Convene. Bury.</h2>
+    <p class="lead">HQ sits twice a day. Every session runs three rounds — blind proposals, critique and champions, final vote — and delivers two ideas with a full pitch deck. The founder holds the last word, always.</p>
+    <ul class="uniq">
+      <li><span class="n">01</span>Ask the council — put an idea on the table and the bench takes positions blind, before anyone knows whose idea it was</li>
+      <li><span class="n">02</span>Members argue their seat — the Critic hunts the flaw, the Engineer prices the build, Finance runs the money math; positions clash in a running debate stream</li>
+      <li><span class="n">03</span>Convene for the verdict — votes land, the sharpest objection gets its answer on the record, and the delivered ideas go to a captioned pitch deck</li>
+      <li><span class="n">04</span>Bury what dies, with honor — ideas the founder rejects after delivery rest in the graveyard, the session's sharpest objection as epitaph, on the do-not-repeat list forever</li>
+    </ul>
+  </div>
+</section>
+
+<section id="members">
+  <div class="wrap">
+    <h2>Seven seats. No yes-men.</h2>
+    <p class="lead">A fixed bench of personas, each honest to its seat — the strange idea, the flaw, the build plan, the buyer, the market, the money, the law. When a seat likes something, it says exactly what would have to be true.</p>
+    <div class="grid g3">
+      <div class="card"><div class="ico">🎨</div><h3>Creative</h3><p>The idea machine who says the strange idea out loud — allergic to the obvious me-too. Carries the transplant lens: what worked at Uber, Airbnb, and Stripe, pitched where it hasn't landed yet.</p></div>
+      <div class="card"><div class="ico">🧐</div><h3>Critic</h3><p>Critiques everything and kills weak ideas early so they never get built. Sharp, unsentimental, allergic to hype — and precise about what would have to be true.</p></div>
+      <div class="card"><div class="ico">🛠️</div><h3>Engineer</h3><p>Judges what can actually ship, in how many weeks, on which model capabilities — and where the technical moat is. Turns concepts into plans and calls out fantasy.</p></div>
+      <div class="card"><div class="ico">🎯</div><h3>Product</h3><p>Embeds with people doing real jobs — recruiters, nurses, bookkeepers, dispatchers — and hunts hair-on-fire drudgery. Cares most about the first ten users and whether each tells a friend.</p></div>
+      <div class="card"><div class="ico">📣</div><h3>Marketer</h3><p>Owns the outside view: positioning, pricing, distribution. Who signs the check, what budget line the product replaces, which channel spreads it. Allergic to build-it-and-they-will-come.</p></div>
+      <div class="card"><div class="ico">💰</div><h3>Finance</h3><p>The money math: unit economics, gross margin, churn sensitivity, the path from first dollar to covering rent. Asks what the tenth customer pays and what the hundredth costs to acquire.</p></div>
+    </div>
+    <p class="note">The seventh seat — 🛡️ Legal — reads every idea for the ways it breaks: another vendor's terms, sensitive data without a privacy story, licensed professions, and liability when the AI is wrong. Not legal advice, just the seat's honest read.</p>
+  </div>
+</section>
+
+<section id="record">
+  <div class="wrap">
+    <h2>A paper trail, in plain files.</h2>
+    <p class="lead">The whole council runs on plain markdown and JSON — readable, diffable, version-controlled. Every debate, verdict, pitch, and burial is a file in the repo, so the entire history of the council is reviewable commit by commit.</p>
+    <div class="grid g3">
+      <div class="card"><div class="ico">💬</div><h3><span class="mono">debates.md</span></h3><p>The durable transcript of every session and conference-room run — blind proposals, champions, votes, and the sharpest objections with their answers.</p></div>
+      <div class="card"><div class="ico">🎤</div><h3><span class="mono">pitches.md</span></h3><p>The Product seat's captioned decks: five slides per delivered idea — problem and buyer, first version, why now, money, and the sharpest objection answered.</p></div>
+      <div class="card"><div class="ico">🪦</div><h3><span class="mono">graveyard.md</span></h3><p>Where delivered-and-rejected ideas rest, with cause and epitaph. Buried ideas never return — they stay on the do-not-repeat list forever.</p></div>
+      <div class="card"><div class="ico">📅</div><h3><span class="mono">calendar.md</span></h3><p>The company calendar and standing rhythm: HQ sits at 08:00 and 20:00. Sessions, burials, and build kickoffs write themselves here.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2>Get Echo HQ.</h2>
+    <p class="lead">Private beta for now — public releases land on the council-releases feed as they're cut. No account, no store; the repo is the product's front door.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="https://github.com/KSWORK2001/council-releases/releases/latest" target="_blank" rel="noopener">Latest release</a>
+      <a class="btn ghost" href="https://github.com/KSWORK2001/council-releases" target="_blank" rel="noopener">All releases</a>
+    </div>
+    <p class="note">Every release carries the dashboard as a standalone, view-only HTML snapshot — one file, nine rooms (stances, chats, pitches, calendar, debates, conference room, graveyard, build, admin), openable anywhere with no server behind it.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>🏛️ Echo HQ — an AI council with a paper trail.</span>
+    <span><a href="https://github.com/KSWORK2001/council-releases" target="_blank" rel="noopener">Releases</a> · <a href="#">Website</a> · source private during the beta</span>
+  </div>
+</footer>
+
+<script>
+async function ver() {
+  try {
+    const r = await fetch("https://api.github.com/repos/KSWORK2001/council-releases/releases/latest");
+    const j = await r.json();
+    const v = (j.tag_name || "").replace(/^v/, "");
+    document.getElementById("ver").textContent = v || "see releases";
+  } catch (e) { document.getElementById("ver").textContent = "see releases"; }
+}
+ver();
+</script>
+</body>
+</html>
